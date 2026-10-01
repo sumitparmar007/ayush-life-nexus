@@ -1,0 +1,21 @@
+{
+  "name": "ayush-nexus",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Ayush-Life Nexus — Health Intelligence Network",
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=9.0.0"
+  },
+  "scripts": {
+    "dev": "pnpm -r --parallel dev",
+    "build": "pnpm -r build",
+    "lint": "pnpm -r lint",
+    "typecheck": "pnpm -r typecheck",
+    "test": "pnpm -r test",
+    "clean": "pnpm -r clean && rm -rf node_modules"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.4"
+  }
+}
