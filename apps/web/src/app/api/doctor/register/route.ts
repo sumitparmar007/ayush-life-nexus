@@ -16,7 +16,7 @@ import { type NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { hashPhone, findUserByPhone, issueOtp, discardOtp } from "@/lib/store.ts";
 import { err, fromError } from "@/lib/api-response.ts";
-import { sendOtpSms } from "@/lib/sms-service.ts";
+import { sendOtpSms, SmsDeliveryError } from "@/lib/sms-service.ts";
 
 const schema = z.object({
   phone: z
@@ -57,7 +57,14 @@ export async function POST(request: NextRequest) {
     } catch (error) {
       discardOtp(issuance.requestId);
       console.error("[OTP SMS] Delivery failed", error);
-      return err("OTP_DELIVERY_FAILED", "Unable to send OTP right now. Please try again later.", 502);
+      if (error instanceof SmsDeliveryError && error.code === "NOT_CONFIGURED") {
+        return err(
+          "OTP_SMS_NOT_CONFIGURED",
+          "SMS delivery is not configured on this server. Set MSG91_AUTH_KEY and MSG91_OTP_TEMPLATE_ID, then restart the app.",
+          503
+        );
+      }
+      return err("OTP_DELIVERY_FAILED", "SMS delivery failed. Check the MSG91 configuration and try again.", 502);
     }
 
     return NextResponse.json(
