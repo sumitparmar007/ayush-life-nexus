@@ -248,7 +248,12 @@ export interface OtpIssuance {
   _devOtp?: string;
 }
 
-export function issueOtp(phone: string): OtpIssuance {
+export interface IssuedOtp {
+  issuance: OtpIssuance;
+  code: string;
+}
+
+export function issueOtp(phone: string): IssuedOtp {
   const phoneHash = hashPhone(phone);
   const otp = process.env.NODE_ENV === "development"
     ? "123456"
@@ -269,11 +274,18 @@ export function issueOtp(phone: string): OtpIssuance {
 
   const masked = `${phone.slice(0, 2)}••••••${phone.slice(-2)}`;
   return {
-    requestId,
-    maskedPhone: masked,
-    expiresInSeconds: OTP_TTL_MS / 1000,
-    ...(process.env.NODE_ENV === "development" ? { _devOtp: otp } : {}),
+    code: otp,
+    issuance: {
+      requestId,
+      maskedPhone: masked,
+      expiresInSeconds: OTP_TTL_MS / 1000,
+      ...(process.env.NODE_ENV === "development" ? { _devOtp: otp } : {}),
+    },
   };
+}
+
+export function discardOtp(requestId: string): void {
+  otps.delete(requestId);
 }
 
 export type OtpResult =

@@ -14,8 +14,9 @@
 
 import { type NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { hashPhone, findUserByPhone, issueOtp } from "@/lib/store.ts";
+import { hashPhone, findUserByPhone, issueOtp, discardOtp } from "@/lib/store.ts";
 import { err, fromError } from "@/lib/api-response.ts";
+import { sendOtpSms } from "@/lib/sms-service.ts";
 
 const schema = z.object({
   phone: z
@@ -50,7 +51,14 @@ export async function POST(request: NextRequest) {
     }
 
     // Issue OTP via existing infrastructure
-    const issuance = issueOtp(parsed.phone);
+    const { issuance, code } = issueOtp(parsed.phone);
+    try {
+      await sendOtpSms(parsed.phone, code);
+    } catch (error) {
+      discardOtp(issuance.requestId);
+      console.error("[OTP SMS] Delivery failed", error);
+      return err("OTP_DELIVERY_FAILED", "Unable to send OTP right now. Please try again later.", 502);
+    }
 
     return NextResponse.json(
       {

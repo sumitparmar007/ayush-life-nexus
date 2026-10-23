@@ -184,6 +184,12 @@ In development mode (`NODE_ENV=development`), the OTP generation endpoint return
 
 > **CRITICAL**: The development OTP bypass mechanism exists strictly for local development and unit testing. It must **NEVER** be treated as a production authentication mechanism or enabled in production environments.
 
+### SMS OTP Delivery
+
+Both patient sign-in and doctor registration send the generated OTP through MSG91 Flow API when `MSG91_AUTH_KEY` and `MSG91_OTP_TEMPLATE_ID` are configured in `apps/web/.env.local`. The MSG91 template must be approved for the account and use `VAR1` as the OTP placeholder. Indian mobile numbers are sent with the `91` country code.
+
+In local development, SMS delivery is skipped when these variables are not configured; the development OTP remains available for testing. In production, both variables are required, and the OTP is invalidated if MSG91 cannot accept the message.
+
 ---
 
 ## Verification & Build Commands
@@ -202,7 +208,6 @@ In development mode (`NODE_ENV=development`), the OTP generation endpoint return
 ## Future Roadmap
 
 - **Persistent Production Database**: Transition from the in-memory store to PostgreSQL / Prisma with encryption at rest.
-- **Production OTP / SMS Gateway**: Integration with verified SMS providers for real-world authentication delivery.
 - **ABHA / ABDM Integration**: Official integration with Ayushman Bharat Digital Mission (ABDM) APIs (ABHA creation, verification, and M1/M2/M3 health information exchange).
 - **FHIR R4 Standardization**: Alignment of clinical records and health data models with FHIR R4 specifications.
 - **Production Deployment & CI/CD**: Cloud containerization and automated CI/CD deployment pipelines.
